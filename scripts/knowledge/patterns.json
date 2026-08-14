@@ -1,0 +1,14 @@
+{
+  "patterns": {
+    "error_handling": "Use try/catch with structured error objects",
+    "logging": "Use structured logging with timestamps",
+    "security": "Never log secrets, validate all inputs",
+    "git": "Commit working states, never commit .env or databases",
+    "dependencies": "Pin versions, update monthly"
+  },
+  "improvements": [
+    { "id": "add-tests", "priority": "high", "effort": "4 hours", "description": "Add unit tests" },
+    { "id": "add-linting", "priority": "medium", "effort": "1 hour", "description": "Add oxlint or eslint" },
+    { "id": "add-docs", "priority": "medium", "effort": "2 hours", "description": "Improve documentation" }
+  ]
+}

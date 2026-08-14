@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Payments CRM</title>
+  <style>
+    body { font-family: system-ui, sans-serif; background: #f6f7f9; padding: 2rem; }
+    .card { max-width: 720px; margin: 0 auto; background: #fff; padding: 1.5rem; border-radius: 8px; box-shadow: 0 1px 2px rgba(0,0,0,0.05); }
+    h1 { font-size: 1.25rem; margin-bottom: 1rem; }
+    label { display: block; font-weight: 600; margin: .75rem 0 .25rem; font-size: .9rem; }
+    input, textarea, select { width: 100%; padding: .5rem .75rem; border: 1px solid #e5e7eb; border-radius: 6px; }
+    button { margin-top: 1rem; padding: .6rem 1rem; border: 0; background: #111827; color: #fff; border-radius: 6px; cursor: pointer; }
+    .row { display: grid; grid-template-columns: 1fr 1fr; gap: .75rem; }
+    pre { background: #0f172a; color: #e5e7eb; padding: .75rem; border-radius: 6px; overflow-x: auto; }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h1>Payments CRM — quick test</h1>
+
+    <h2>Customer</h2>
+    <form id="customerForm">
+      <div class="row">
+        <div>
+          <label>Name</label>
+          <input id="custName" placeholder="Jane Doe" />
+        </div>
+        <div>
+          <label>Email</label>
+          <input id="custEmail" placeholder="jane@example.com" />
+        </div>
+      </div>
+      <div class="row">
+        <div>
+          <label>Phone</label>
+          <input id="custPhone" placeholder="+254..." />
+        </div>
+        <div>
+          <label>Source</label>
+          <input id="custSource" placeholder="Telegram / referral" />
+        </div>
+      </div>
+      <label>Notes</label>
+      <textarea id="custNotes" rows="3" placeholder="How you found them..."></textarea>
+      <button type="submit">Save customer</button>
+    </form>
+
+    <h2 style="margin-top: 1.5rem;">Invoice</h2>
+    <form id="invoiceForm">
+      <label>Customer email</label>
+      <input id="invEmail" placeholder="jane@example.com" />
+      <label>Amount (cents)</label>
+      <input id="invAmount" type="number" value="5000" />
+      <label>Description</label>
+      <input id="invDesc" placeholder="Poultry SaaS setup" />
+      <button type="submit">Create invoice</button>
+    </form>
+
+    <h2 style="margin-top: 1.5rem;">Response</h2>
+    <pre id="output">...</pre>
+  </div>
+
+  <script>
+    const base = location.origin;
+    const out = (v) => (document.getElementById('output').textContent = JSON.stringify(v, null, 2));
+
+    document.getElementById('customerForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const res = await fetch(`${base}/customers`, {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({
+          name: document.getElementById('custName').value,
+          email: document.getElementById('custEmail').value,
+          phone: document.getElementById('custPhone').value,
+          source: document.getElementById('custSource').value,
+          notes: document.getElementById('custNotes').value
+        })
+      });
+      out(await res.json());
+    });
+
+    document.getElementById('invoiceForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const res = await fetch(`${base}/invoices`, {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({
+          customer_email: document.getElementById('invEmail').value,
+          amount_cents: Number(document.getElementById('invAmount').value),
+          description: document.getElementById('invDesc').value
+        })
+      });
+      const data = await res.json();
+      out(data);
+      if (data.checkoutUrl) {
+        window.open(data.checkoutUrl, '_blank');
+      }
+    });
+  </script>
+</body>
+</html>
