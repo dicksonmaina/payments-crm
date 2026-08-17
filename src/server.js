@@ -5,6 +5,7 @@ import Database from "better-sqlite3";
 import { Queue } from "bullmq";
 import { v4 as uuidv4 } from "uuid";
 import dotenv from "dotenv";
+import { body, query, validationResult } from "express-validator";
 
 dotenv.config();
 
@@ -46,6 +47,14 @@ const emailQueue = new Queue("emails", {
 app.use(express.json());
 app.use(express.static("public"));
 
+const validateResult = (req, res, next) => {
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    return res.status(400).json({ error: "validation failed", details: errors.array() });
+  }
+  next();
+};
+
 app.get("/health", (req, res) => res.json({ ok: true }));
 
 app.get("/customers", (req, res) => {
@@ -53,7 +62,14 @@ app.get("/customers", (req, res) => {
   res.json(rows);
 });
 
-app.post("/customers", (req, res) => {
+app.post("/customers",
+  [
+    body("email").isEmail().withMessage("email must be a valid email format"),
+    body("name").isLength({ max: 100 }).withMessage("name must be at most 100 characters"),
+    body("phone").isLength({ max: 20 }).withMessage("phone must be at most 20 characters")
+  ],
+  validateResult,
+  (req, res) => {
   const { name, email, phone, source, notes } = req.body || {};
   if (!email) return res.status(400).json({ error: "email required" });
   const info = db
@@ -62,7 +78,13 @@ app.post("/customers", (req, res) => {
   res.status(201).json({ id: info.lastInsertRowid, email });
 });
 
-app.post("/invoices", async (req, res) => {
+app.post("/invoices",
+  [
+    body("amount_cents").isInt({ min: 1 }).withMessage("amount_cents must be a positive integer"),
+    body("description").isLength({ max: 200 }).withMessage("description must be at most 200 characters")
+  ],
+  validateResult,
+  async (req, res) => {
   const { customer_email, amount_cents, description } = req.body || {};
   if (!customer_email || !amount_cents) {
     return res.status(400).json({ error: "customer_email and amount_cents required" });
@@ -107,7 +129,10 @@ app.post("/invoices", async (req, res) => {
   res.status(201).json({ invoiceId, checkoutUrl: session.url });
 });
 
-app.get("/success", async (req, res) => {
+app.get("/success",
+  [query("session_id").notEmpty().withMessage("session_id must be a non-empty string")],
+  validateResult,
+  async (req, res) => {
   const sessionId = req.query.session_id;
   if (!sessionId) return res.redirect("/");
   const session = await stripe.checkout.sessions.retrieve(sessionId);
@@ -144,6 +169,8 @@ app.post("/webhooks/stripe", express.raw({ type: "application/json" }), (req, re
 
   res.json({ received: true });
 });
+
+export default app;
 
 const port = process.env.PORT || 3000;
 app.listen(port, () => {

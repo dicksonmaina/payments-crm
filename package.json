@@ -6,15 +6,17 @@
   "scripts": {
     "start": "node src/server.js",
     "pm2": "pm2 start src/server.js --name payments-crm",
-    "agent": "node scripts/agent.cjs"
+    "agent": "node scripts/agent.cjs",
+    "test": "node --test"
   },
   "dependencies": {
-    "express": "^4.21.0",
-    "stripe": "^22.4.0",
-    "resend": "^6.18.1",
     "better-sqlite3": "^11.0.0",
     "bullmq": "^6.0.5",
     "dotenv": "^16.4.0",
+    "express": "^4.21.0",
+    "express-validator": "^7.3.2",
+    "resend": "^6.18.1",
+    "stripe": "^22.4.0",
     "uuid": "^9.0.0"
   }
 }
