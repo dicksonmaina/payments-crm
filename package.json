@@ -9,7 +9,7 @@
     "agent": "node scripts/agent.cjs"
   },
   "dependencies": {
-    "express": "^4.21.0",
+    "express": "^5.2.1",
     "stripe": "^22.4.0",
     "resend": "^6.18.1",
     "better-sqlite3": "^11.0.0",
